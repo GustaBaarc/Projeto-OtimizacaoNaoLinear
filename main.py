@@ -1,57 +1,127 @@
-from funcoes import f_ex1, f_three_hump_camel
-from otimizadores import busca_aleatoria, otimizador_scipy
+from funcoes import f1, grad1, hess1, f4, grad4, hess4
+from gradiente import rodar_gradiente
+from otimizacao_newton import rodar_newton
+from otimizacao_quasi_newton import rodar_quasi_newton
+from diraleatoria import rodar_aleatoria
 from plotar import exibir_graficos
 
 
 def main():
+    # Digite aqui os métodos que deseja rodar dentro de uma lista.
+    METODOS_ESCOLHIDOS = [1, 2, 4]
 
-    f_alvo = f_ex1
-    x0 = [0.5, 3.5]
-    iteracoes = 5
-    passo_alpha = 0.1
+    # Variáveis gerais
+    ponto_inicial = [0.5, 3.5]
+    iteracoes_maximas = 5
+    tamanho_passo = 0.05
+    criterio_parada = 0.001
 
-    # Vetor de Direções
-    direcoes = [
-        [-0.3850, 0.6680],
-        [0.4560, -0.4956],
-        [0.8570, 0.1049],
-        [0.4956, -0.3456],
-        [0.6680, 0.7829],
-    ]
-    # direcoes = None
+    # Alfas para Metodo 3 (Quasi-Newton)
+    alfas_lista = [0.4125, 0.7530]
+    resultados_para_plotar = []
+    funcao_fundo = f1
 
-    # ==========================================
-    # EXECUÇÃO DO MOTOR
-    # ==========================================
-    print("\n" + "-" * 60)
-    print(" INICIANDO OTIMIZAÇÃO (BUSCA ALEATÓRIA)")
-    print("-" * 60)
+    # ==============================================================================
+    # 1. MÉTODO DO VETOR GRADIENTE
+    # ==============================================================================
+    if 1 in METODOS_ESCOLHIDOS:
+        print("\nRodando: VETOR GRADIENTE...")
+        funcao_alvo = f1
+        funcao_fundo = f1
 
-    hist_x, hist_f = busca_aleatoria(
-        f_alvo, x0, max_iter=iteracoes, direcoes=direcoes, alpha=passo_alpha
-    )
-
-    # --- NOVO BLOCO: Imprimindo cada passo ---
-    print("\nHISTÓRICO PASSO A PASSO:")
-    for i in range(len(hist_f)):
-        # i=0 é o ponto inicial. A partir de i=1 são as iterações.
-        nome_passo = "Início (X0)" if i == 0 else f"Iteração {i:02d}"
-        print(
-            f"{nome_passo}: [x1: {hist_x[i][0]:.6f}, x2: {hist_x[i][1]:.6f}]  ->  F(x): {hist_f[i]:.6f}"
+        hist_x, hist_f = rodar_gradiente(
+            funcao=funcao_alvo,
+            gradiente_f=grad1,
+            x_inicial=ponto_inicial,
+            iteracoes=iteracoes_maximas,
+            alpha=tamanho_passo,
+            epsilon=criterio_parada,
+        )
+        resultados_para_plotar.append(
+            {"nome": "Gradiente", "hist_x": hist_x, "hist_f": hist_f}
         )
 
-    print("\n" + "-" * 60)
-    print(" RESUMO FINAL")
-    print("-" * 60)
-    print(f"Total de passos executados: {len(hist_f) - 1}")
-    print(
-        f"Ponto de Mínimo Encontrado [x1, x2]: [{hist_x[-1][0]:.6f}, {hist_x[-1][1]:.6f}]"
-    )
-    print(f"Valor Final da Função F(x): {hist_f[-1]:.6f}")
-    print("-" * 60 + "\n")
+    # ==============================================================================
+    # 2. MÉTODO DE NEWTON
+    # ==============================================================================
+    if 2 in METODOS_ESCOLHIDOS:
+        print("\nRodando: NEWTON...")
+        funcao_alvo = f1
+        funcao_fundo = f1
 
-    # Exibe os gráficos
-    exibir_graficos(hist_x, hist_f, f_alvo)
+        hist_x, hist_f = rodar_newton(
+            funcao=funcao_alvo,
+            gradiente_f=grad1,
+            hessiana_f=hess1,
+            x_inicial=ponto_inicial,
+            iteracoes=iteracoes_maximas,
+            epsilon=criterio_parada,
+        )
+        resultados_para_plotar.append(
+            {"nome": "Newton", "hist_x": hist_x, "hist_f": hist_f}
+        )
+
+    # ==============================================================================
+    # 3. MÉTODO QUASI-NEWTON (BFGS)
+    # ==============================================================================
+    if 3 in METODOS_ESCOLHIDOS:
+        print("\nRodando: QUASI-NEWTON (BFGS)...")
+        funcao_alvo = f4
+        funcao_fundo = (
+            f4  # Atualiza o fundo porque o Ex 4 e 5 usa a função Three-Hump Camel
+        )
+        ponto_inicial_qnewton = [0.5, 0.5]
+
+        hist_x, hist_f = rodar_quasi_newton(
+            funcao=funcao_alvo,
+            gradiente_f=grad4,
+            x_inicial=ponto_inicial_qnewton,
+            iteracoes=iteracoes_maximas,
+            alfas_lista=alfas_lista,
+            alpha_padrao=tamanho_passo,
+            epsilon=criterio_parada,
+        )
+        resultados_para_plotar.append(
+            {"nome": "Quasi-Newton", "hist_x": hist_x, "hist_f": hist_f}
+        )
+
+    # ==============================================================================
+    # 4. BUSCA ALEATÓRIA
+    # ==============================================================================
+    if 4 in METODOS_ESCOLHIDOS:
+        print("\nRodando: BUSCA ALEATÓRIA...")
+        funcao_alvo = f1
+        funcao_fundo = f1
+
+        hist_x, hist_f = rodar_aleatoria(
+            funcao=funcao_alvo,
+            x_inicial=ponto_inicial,
+            iteracoes=iteracoes_maximas,
+            direcoes_lista=None,
+            alpha=0.1,
+            epsilon=criterio_parada,
+        )
+        resultados_para_plotar.append(
+            {"nome": "Busca Aleatória", "hist_x": hist_x, "hist_f": hist_f}
+        )
+
+    # ==============================================================================
+    # RESULTADOS NA TELA
+    # ==============================================================================
+    print("\n" + "=" * 40)
+    print("HISTÓRICO DE PASSOS POR MÉTODO")
+    print("=" * 40)
+
+    # Como agora temos vários métodos, ele faz um loop para imprimir cada um
+    for res in resultados_para_plotar:
+        print(f"\n--- {res['nome'].upper()} ---")
+        for i in range(len(res["hist_f"])):
+            print(
+                f"Iteração {i}: x=[{res['hist_x'][i][0]:.5f}, {res['hist_x'][i][1]:.5f}] | f(x)={res['hist_f'][i]:.5f}"
+            )
+
+    # Só lembre de garantir que seu plotar.py é aquele atualizado que aceita receber a lista inteira!
+    exibir_graficos(resultados_para_plotar, funcao_fundo)
 
 
 if __name__ == "__main__":

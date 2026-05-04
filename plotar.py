@@ -2,38 +2,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def exibir_graficos(hist_x, hist_f, f_alvo):
-    print(">> Gerando gráficos... Feche a janela para encerrar o script.")
-
+def exibir_graficos(lista_resultados, funcao_alvo):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    # --- Gráfico 1: Curvas de Nível e Deslocamento ---
+    # 1. Descobrir os limites do gráfico juntando as coordenadas de todos os métodos
+    x1_todos = []
+    x2_todos = []
+    for res in lista_resultados:
+        x1_todos.extend(res["hist_x"][:, 0])
+        x2_todos.extend(res["hist_x"][:, 1])
+
     margem = 1.0
-    x1_min, x1_max = min(hist_x[:, 0]) - margem, max(hist_x[:, 0]) + margem
-    x2_min, x2_max = min(hist_x[:, 1]) - margem, max(hist_x[:, 1]) + margem
+    x1_min, x1_max = min(x1_todos) - margem, max(x1_todos) + margem
+    x2_min, x2_max = min(x2_todos) - margem, max(x2_todos) + margem
 
     X1_grid, X2_grid = np.meshgrid(
         np.linspace(x1_min, x1_max, 100), np.linspace(x2_min, x2_max, 100)
     )
+    Z_grid = funcao_alvo([X1_grid, X2_grid])
 
-    # O NumPy consegue calcular a matriz inteira de uma vez só
-    Z_grid = f_alvo([X1_grid, X2_grid])
-
+    # Desenha o relevo de fundo
     ax1.contour(X1_grid, X2_grid, Z_grid, levels=30, cmap="viridis")
-    ax1.plot(hist_x[:, 0], hist_x[:, 1], marker="o", color="red", linestyle="-")
-    ax1.plot(hist_x[0, 0], hist_x[0, 1], marker="s", color="black", label="Início")
+
+    # Cores para cada método que for plotado
+    cores = ["red", "blue", "green", "orange", "purple"]
+
+    # 2. Desenha a linha de cada método no gráfico
+    for i, res in enumerate(lista_resultados):
+        cor = cores[i % len(cores)]
+        nome = res["nome"]
+        hist_x = res["hist_x"]
+        hist_f = res["hist_f"]
+
+        # Curva de Deslocamento (x1 vs x2)
+        ax1.plot(
+            hist_x[:, 0], hist_x[:, 1], marker="o", color=cor, linestyle="-", label=nome
+        )
+
+        # Marcação do ponto inicial (quadrado preto)
+        if i == 0:
+            ax1.plot(
+                hist_x[0, 0], hist_x[0, 1], marker="s", color="black", markersize=8
+            )
+
+        # Curva de Convergência (Iteração vs Função)
+        ax2.plot(range(len(hist_f)), hist_f, marker="o", color=cor, label=nome)
 
     ax1.set_title("Curva de Deslocamento")
     ax1.set_xlabel("x1")
     ax1.set_ylabel("x2")
     ax1.legend()
 
-    # --- Gráfico 2: Curva de Convergência ---
-    ax2.plot(range(len(hist_f)), hist_f, marker="o", color="blue")
     ax2.set_title("Curva de Convergência")
     ax2.set_xlabel("Iterações")
-    ax2.set_ylabel("F(x1, x2)")
+    ax2.set_ylabel("Valor de f(x)")
     ax2.grid(True, linestyle="--", alpha=0.6)
+    ax2.legend()
 
     plt.tight_layout()
     plt.show()

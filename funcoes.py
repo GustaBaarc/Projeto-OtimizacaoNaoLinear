@@ -1,19 +1,26 @@
 import numpy as np
 
-# adicionar funções aqui para manter a main limpa
-# Esboço de função geral
-# def nome_da_funcao(x):
-#     # código da função
-#     return valor_da_funcao
+# ==========================================
+# EXERCÍCIO 1
+# ==========================================
+def f1(x):
+    return (x[0] + 2*x[1] - 7)**2 + (2*x[0] + x[1] - 5)**2
+
+def grad1(x):
+    return np.array([10*x[0] + 8*x[1] - 34, 8*x[0] + 10*x[1] - 38])
+
+def hess1(x):
+    return np.array([[10, 8], [8, 10]])
 
 
-def f_ex1(x):
-    """Função do Exercício 1"""
-    x1, x2 = x[0], x[1]
-    return (x1 + 2 * x2 - 7) ** 2 + (2 * x1 + x2 - 5) ** 2
+# ==========================================
+# EXERCÍCIO 4 E 5
+# ==========================================
+def f4(x):
+    return 2*(x[0]**2) - 1.05*(x[0]**4) + (x[0]**6)/6 + x[0]*x[1] + (x[1]**2)
 
+def grad4(x):
+    return np.array([4*x[0] - 4.2*(x[0]**3) + (x[0]**5) + x[1], x[0] + 2*x[1]])
 
-def f_three_hump_camel(x):
-    """Função Three-Hump Camel (Exercícios 4 e 5)"""
-    x1, x2 = x[0], x[1]
-    return 2 * (x1**2) - 1.05 * (x1**4) + (x1**6) / 6 + x1 * x2 + (x2**2)
+def hess4(x):
+    return np.array([[4 - 12.6*(x[0]**2) + 5*(x[0]**4), 1], [1, 2]])
