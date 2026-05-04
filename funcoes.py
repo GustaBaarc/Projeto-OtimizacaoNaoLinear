@@ -1,5 +1,11 @@
 import numpy as np
 
+# adicionar funções aqui para manter a main limpa
+# Esboço de função geral
+# def nome_da_funcao(x):
+#     # código da função
+#     return valor_da_funcao
+
 
 def f_ex1(x):
     """Função do Exercício 1"""
