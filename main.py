@@ -11,9 +11,9 @@ def main():
     METODOS_ESCOLHIDOS = [1, 2, 4]
 
     # Variáveis gerais
-    ponto_inicial = [0.5, 3.5]
-    iteracoes_maximas = 5
-    tamanho_passo = 0.05
+    ponto_inicial = [-2, 2]
+    iteracoes_maximas = 50
+    tamanho_passo = 0.01
     criterio_parada = 0.001
 
     # Alfas para Metodo 3 (Quasi-Newton)
