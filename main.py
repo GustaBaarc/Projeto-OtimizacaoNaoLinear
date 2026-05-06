@@ -9,12 +9,12 @@ from otimizacao_newton_modificado import rodar_newton_modificado
 
 def main():
     # Digite aqui os métodos que deseja rodar dentro de uma lista.
-    METODOS_ESCOLHIDOS = [1, 2, 4]
+    METODOS_ESCOLHIDOS = [5]
 
     # Variáveis gerais
-    ponto_inicial = [-2, 2]
+    ponto_inicial = [0.5, 0.5]
     iteracoes_maximas = 50
-    tamanho_passo = 0.01
+    tamanho_passo = 0.05
     criterio_parada = 0.001
 
     # Alfas para Metodo 3 (Quasi-Newton)
@@ -106,7 +106,7 @@ def main():
             {"nome": "Busca Aleatória", "hist_x": hist_x, "hist_f": hist_f}
         )
 
-        # ==============================================================================
+    # ==============================================================================
     # 5. MÉTODO DE NEWTON MODIFICADO (Questão 4)
     # ==============================================================================
     if 5 in METODOS_ESCOLHIDOS:
@@ -122,7 +122,7 @@ def main():
             hessiana_f=hess4,
             x_inicial=ponto_inicial,
             iteracoes=iteracoes_maximas,
-            alpha=tamanho_passo,  # Ele usa o alpha, diferente do Newton Clássico!
+            alpha=tamanho_passo,
             epsilon=criterio_parada,
         )
         resultados_para_plotar.append(
