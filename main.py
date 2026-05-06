@@ -4,6 +4,7 @@ from otimizacao_newton import rodar_newton
 from otimizacao_quasi_newton import rodar_quasi_newton
 from diraleatoria import rodar_aleatoria
 from plotar import exibir_graficos
+from otimizacao_newton_modificado import rodar_newton_modificado
 
 
 def main():
@@ -103,6 +104,29 @@ def main():
         )
         resultados_para_plotar.append(
             {"nome": "Busca Aleatória", "hist_x": hist_x, "hist_f": hist_f}
+        )
+
+        # ==============================================================================
+    # 5. MÉTODO DE NEWTON MODIFICADO (Questão 4)
+    # ==============================================================================
+    if 5 in METODOS_ESCOLHIDOS:
+        print("\nRodando: NEWTON MODIFICADO...")
+
+        # Configure aqui a função que a Questão 4 pede (Ex: f4 e hess4)
+        funcao_alvo = f4
+        funcao_fundo = f4
+
+        hist_x, hist_f = rodar_newton_modificado(
+            funcao=funcao_alvo,
+            gradiente_f=grad4,
+            hessiana_f=hess4,
+            x_inicial=ponto_inicial,
+            iteracoes=iteracoes_maximas,
+            alpha=tamanho_passo,  # Ele usa o alpha, diferente do Newton Clássico!
+            epsilon=criterio_parada,
+        )
+        resultados_para_plotar.append(
+            {"nome": "Newton Modificado", "hist_x": hist_x, "hist_f": hist_f}
         )
 
     # ==============================================================================
