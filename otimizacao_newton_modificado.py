@@ -1,37 +1,37 @@
 import numpy as np
 
 
+def busca_secao_aurea(f_alpha, a=0.0, b=2.0, tol=1e-4):
+    r = 0.618
+    x1, x2 = b - r * (b - a), a + r * (b - a)
+    while (b - a) > tol:
+        if f_alpha(x1) < f_alpha(x2):
+            b, x2 = x2, x1
+            x1 = b - r * (b - a)
+        else:
+            a, x1 = x1, x2
+            x2 = a + r * (b - a)
+    return (a + b) / 2.0
+
+
 def rodar_newton_modificado(
-    funcao, gradiente_f, hessiana_f, x_inicial, iteracoes, alpha, epsilon
+    funcao, gradiente_f, hessiana_f, x_inicial, iteracoes, epsilon
 ):
-    x_atual = np.array(x_inicial, dtype=float)
-
-    historico_x = [x_atual.copy()]
-    historico_f = [funcao(x_atual)]
-
-    for i in range(iteracoes):
-        gradiente = gradiente_f(x_atual)
-        hessiana = hessiana_f(x_atual)
-
-        # Inverte a matriz Hessiana exata
+    x_at = np.array(x_inicial, dtype=float)
+    hx, hf = [x_at.copy()], [funcao(x_at)]
+    for _ in range(iteracoes):
+        g, h = gradiente_f(x_at), hessiana_f(x_at)
         try:
-            hessiana_invertida = np.linalg.inv(hessiana)
-        except np.linalg.LinAlgError:
-            hessiana_invertida = np.eye(len(x_atual))
-
-        # Calcula a direção de descida
-        direcao = -np.dot(hessiana_invertida, gradiente)
-
-        # A GRANDE MODIFICAÇÃO: Usa o 'alpha' para controlar o tamanho do passo
-        x_novo = x_atual + alpha * direcao
-
-        historico_x.append(x_novo.copy())
-        historico_f.append(funcao(x_novo))
-
-        # Critério de parada
-        if epsilon is not None and np.linalg.norm(x_novo - x_atual) < epsilon:
-            break
-
-        x_atual = x_novo
-
-    return np.array(historico_x), np.array(historico_f)
+            inv_h = np.linalg.inv(h)
+        except:
+            inv_h = np.eye(len(x_at))
+        direcao = -np.dot(inv_h, g)
+        alpha = busca_secao_aurea(lambda a: funcao(x_at + a * direcao))
+        x_at = x_at + alpha * direcao
+        hx.append(x_at.copy())
+        hf.append(funcao(x_at))
+        if len(hf) >= 6:
+            df_tot = max(hf) - min(hf)
+            if df_tot > 1e-10 and (max(hf[-6:]) - min(hf[-6:])) < epsilon * df_tot:
+                break
+    return np.array(hx), np.array(hf)
