@@ -21,15 +21,11 @@ def rodar_quasi_newton(
     x_inicial,
     iteracoes,
     epsilon,
-    criterio="delta_f",     # "delta_f" | "norma_x" | "norma_grad" | "max_iter"
+    criterio="delta_f",
     max_iter_fixo=None,
 ):
     """
     Método Quasi-Newton (BFGS) com busca de linha pela seção áurea.
-
-    O padrão deste módulo é criterio="norma_x" porque a Questão 4
-    (Three-Hump Camel / Quasi-Newton) pede explicitamente o critério de
-    "convergência das variáveis": ‖x_novo − x_ant‖ < epsilon.
 
     Critérios de parada disponíveis (parâmetro `criterio`):
         "delta_f"    – variação relativa de f nos últimos 6 passos
@@ -38,9 +34,10 @@ def rodar_quasi_newton(
         "max_iter"   – para após `max_iter_fixo` iterações
     """
     x_at = np.array(x_inicial, dtype=float)
-    H = np.eye(len(x_at))   # aproximação inicial da inversa da Hessiana
-    hx = [x_at.copy()]
-    hf = [funcao(x_at)]
+    H = np.eye(len(x_at))
+    hx  = [x_at.copy()]
+    hf  = [funcao(x_at)]
+    hdx = [0.0]  # norma do passo (0 na iteração inicial)
 
     for it in range(iteracoes):
         g = gradiente_f(x_at)
@@ -53,7 +50,6 @@ def rodar_quasi_newton(
         y = gradiente_f(x_nv) - g
         sy = np.dot(s, y)
 
-        # Atualização BFGS apenas se sy > 0 (garante definição positiva)
         if sy > 1e-10:
             rho = 1.0 / sy
             I = np.eye(len(x_at))
@@ -67,6 +63,7 @@ def rodar_quasi_newton(
 
         hx.append(x_nv.copy())
         hf.append(funcao(x_nv))
+        hdx.append(float(np.linalg.norm(x_nv - x_at)))
 
         if verificar_parada(
             criterio, epsilon, hf,
@@ -80,4 +77,4 @@ def rodar_quasi_newton(
 
         x_at = x_nv
 
-    return np.array(hx), np.array(hf)
+    return np.array(hx), np.array(hf), np.array(hdx)

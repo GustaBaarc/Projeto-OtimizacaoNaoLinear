@@ -24,7 +24,7 @@ from otimizacao_newton_modificado import rodar_newton_modificado
 #   "dixon"      → Dixon-Price        
 #   "problema_a" → Problema A         
 # ──────────────────────────────────────────────────────────────────────────────
-funcao_ativa = "problema_a"
+funcao_ativa = "f4"
 
 if funcao_ativa == "f1":
     f, grad, hess = f1, grad1, hess1
@@ -78,9 +78,9 @@ def rodar_tudo():
             lista_resultados.append({"nome": "Newton", "hist_x": c_x, "hist_f": c_f})
 
         if chk_bfgs.get():
-            c_x, c_f = rodar_quasi_newton(f, grad, p0, max_iter, eps,
+            c_x, c_f, c_dx = rodar_quasi_newton(f, grad, p0, max_iter, eps,
                                           criterio=criterio, max_iter_fixo=max_iter_fixo)
-            lista_resultados.append({"nome": "Quasi-Newton", "hist_x": c_x, "hist_f": c_f})
+            lista_resultados.append({"nome": "Quasi-Newton", "hist_x": c_x, "hist_f": c_f, "hist_dx": c_dx})
 
         if chk_aleatoria.get():
             c_x, c_f = rodar_aleatoria(f, p0, max_iter, eps,

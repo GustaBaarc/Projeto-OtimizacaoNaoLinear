@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 
 
 def exibir_graficos(lista_resultados, funcao_alvo):
-    # Verifica se algum resultado tem hist_g para exibir o 3º gráfico
     tem_grad = any("hist_g" in res for res in lista_resultados)
-    ncols = 3 if tem_grad else 2
+    tem_dx   = any("hist_dx" in res for res in lista_resultados)
+    tem_extra = tem_grad or tem_dx
+    ncols = 3 if tem_extra else 2
 
     fig, axes = plt.subplots(1, ncols, figsize=(7 * ncols, 6))
     ax1, ax2 = axes[0], axes[1]
-    ax3 = axes[2] if tem_grad else None
+    ax3 = axes[2] if tem_extra else None
 
     x1_todos, x2_todos = [], []
     for res in lista_resultados:
@@ -53,6 +54,10 @@ def exibir_graficos(lista_resultados, funcao_alvo):
             ax3.plot(range(len(res["hist_g"])), res["hist_g"], marker="o",
                      color=cor, linestyle="-", label=nome, markersize=4)
 
+        if ax3 is not None and "hist_dx" in res:
+            ax3.plot(range(len(res["hist_dx"])), res["hist_dx"], marker="o",
+                     color=cor, linestyle="-", label=nome, markersize=4)
+
     ax1.set_title("Curvas de Nível e Deslocamento")
     ax1.set_xlabel("x₁")
     ax1.set_ylabel("x₂")
@@ -65,9 +70,13 @@ def exibir_graficos(lista_resultados, funcao_alvo):
     ax2.grid(True)
 
     if ax3 is not None:
-        ax3.set_title("Convergência — Iteração vs ‖∇f(x)‖")
+        if tem_grad:
+            ax3.set_title("Convergência — Iteração vs ‖∇f(x)‖")
+            ax3.set_ylabel("‖∇f(x)‖")
+        else:
+            ax3.set_title("Convergência — Iteração vs ‖x_novo − x_ant‖")
+            ax3.set_ylabel("‖x_novo − x_ant‖")
         ax3.set_xlabel("Iterações")
-        ax3.set_ylabel("‖∇f(x)‖")
         ax3.legend()
         ax3.grid(True)
 
