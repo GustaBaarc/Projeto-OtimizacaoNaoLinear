@@ -1,4 +1,5 @@
 import numpy as np
+from criterios_parada import verificar_parada
 
 
 def busca_secao_aurea(f_alpha, a=0.0, b=2.0, tol=1e-4):
@@ -17,18 +18,41 @@ def busca_secao_aurea(f_alpha, a=0.0, b=2.0, tol=1e-4):
     return (a + b) / 2.0
 
 
-def rodar_gradiente(funcao, gradiente_f, x_inicial, iteracoes, epsilon):
+def rodar_gradiente(
+    funcao,
+    gradiente_f,
+    x_inicial,
+    iteracoes,
+    epsilon,
+    criterio="delta_f",
+    max_iter_fixo=None,
+):
     x_at = np.array(x_inicial, dtype=float)
-    hx, hf = [x_at.copy()], [funcao(x_at)]
-    for _ in range(iteracoes):
-        direcao = -gradiente_f(x_at)
+    hx = [x_at.copy()]
+    hf = [funcao(x_at)]
+    hg = [float(np.linalg.norm(gradiente_f(x_at)))]
+
+    for it in range(iteracoes):
+        g = gradiente_f(x_at)
+        direcao = -g
         alpha = busca_secao_aurea(lambda a: funcao(x_at + a * direcao))
-        x_at = x_at + alpha * direcao
-        hx.append(x_at.copy())
-        hf.append(funcao(x_at))
-        if len(hf) >= 6:
-            df_tot = max(hf) - min(hf)
-            df_5 = max(hf[-6:]) - min(hf[-6:])
-            if df_tot > 1e-10 and df_5 < epsilon * df_tot:
-                break
-    return np.array(hx), np.array(hf)
+        x_nv = x_at + alpha * direcao
+        g_nv = gradiente_f(x_nv)
+
+        hx.append(x_nv.copy())
+        hf.append(funcao(x_nv))
+        hg.append(float(np.linalg.norm(g_nv)))
+
+        if verificar_parada(
+            criterio, epsilon, hf,
+            x_novo=x_nv, x_ant=x_at,
+            gradiente=g_nv,
+            iteracao_atual=it,
+            max_iter_fixo=max_iter_fixo,
+        ):
+            x_at = x_nv
+            break
+
+        x_at = x_nv
+
+    return np.array(hx), np.array(hf), np.array(hg)

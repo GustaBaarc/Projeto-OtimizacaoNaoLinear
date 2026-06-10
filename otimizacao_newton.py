@@ -1,33 +1,55 @@
 import numpy as np
+from criterios_parada import verificar_parada
 
 
-def rodar_newton(funcao, gradiente_f, hessiana_f, x_inicial, iteracoes, epsilon):
-    x_atual = np.array(x_inicial, dtype=float)
-    historico_x = [x_atual.copy()]
-    historico_f = [funcao(x_atual)]
+def rodar_newton(
+    funcao,
+    gradiente_f,
+    hessiana_f,
+    x_inicial,
+    iteracoes,
+    epsilon,
+    criterio="delta_f",     # "delta_f" | "norma_x" | "norma_grad" | "max_iter"
+    max_iter_fixo=None,
+):
+    """
+    Método de Newton puro (passo completo, sem busca de linha).
 
-    for _ in range(iteracoes):
-        gradiente = gradiente_f(x_atual)
-        hessiana = hessiana_f(x_atual)
+    Critérios de parada disponíveis (parâmetro `criterio`):
+        "delta_f"    – variação relativa de f nos últimos 6 passos  (padrão original)
+        "norma_x"    – ‖x_novo − x_ant‖ < epsilon
+        "norma_grad" – ‖∇f(x)‖ < epsilon
+        "max_iter"   – para após `max_iter_fixo` iterações
+                       (Questão 2: Dixon-Price com Newton em 1 iteração)
+    """
+    x_at = np.array(x_inicial, dtype=float)
+    hx = [x_at.copy()]
+    hf = [funcao(x_at)]
+
+    for it in range(iteracoes):
+        g = gradiente_f(x_at)
+        H = hessiana_f(x_at)
 
         try:
-            hessiana_invertida = np.linalg.inv(hessiana)
+            H_inv = np.linalg.inv(H)
         except np.linalg.LinAlgError:
-            hessiana_invertida = np.eye(len(x_atual))
+            H_inv = np.eye(len(x_at))
 
-        passo = np.dot(hessiana_invertida, gradiente)
-        x_novo = x_atual - passo
+        x_nv = x_at - np.dot(H_inv, g)
 
-        historico_x.append(x_novo.copy())
-        historico_f.append(funcao(x_novo))
+        hx.append(x_nv.copy())
+        hf.append(funcao(x_nv))
 
-        if len(historico_f) >= 6:
-            delta_f_total = max(historico_f) - min(historico_f)
-            ultimos_6 = historico_f[-6:]
-            delta_f_5 = max(ultimos_6) - min(ultimos_6)
-            if delta_f_total > 1e-10 and delta_f_5 < epsilon * delta_f_total:
-                break
+        if verificar_parada(
+            criterio, epsilon, hf,
+            x_novo=x_nv, x_ant=x_at,
+            gradiente=gradiente_f(x_nv),
+            iteracao_atual=it,
+            max_iter_fixo=max_iter_fixo,
+        ):
+            x_at = x_nv
+            break
 
-        x_atual = x_novo
+        x_at = x_nv
 
-    return np.array(historico_x), np.array(historico_f)
+    return np.array(hx), np.array(hf)
